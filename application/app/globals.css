@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.webkitOverflow {
+    font-size: 1em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin: 0;
+}
+
+.webkitOverflow4lines {
+    font-size: 1em;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    margin: 0;
+}
+
+.backgroundImageCalc {
+    background-position: left calc((50vw - 170px) - 340px) top;
+}
+
+.calcDivWidth {
+    width: calc(100vw - 80px - 268px);
+    max-width: calc(1400px - 80px - 268px);
+}
+
+.calcPosterWidth50vh {
+    min-width: calc((300 * 50vh)/450);
+    width: calc((300 * 50vh)/450);
+}
+
+.PlayerVideo75vw {
+    min-width: 75vw;
+    width: 75vw;
+    height: auto;
+}
+
+.grayBackground {
+    background-color: #202020;
+    color: white;
+}
+
+.imgToBlackAndWhite {
+    filter: grayscale(100%);
+    -webkit-filter: grayscale(100%);
+}

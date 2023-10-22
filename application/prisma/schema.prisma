@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Movie {
+  id           Int          @id
+  title        String       @db.VarChar(1000)
+  releaseDate  String       @db.VarChar(20)
+  pegi         String       @db.VarChar(20)
+  runtime      Int
+  overview     String       @db.VarChar(2500)
+  tagline      String       @db.VarChar(1000)
+  posterPath   String       @db.VarChar(200)
+  backdropPath String       @db.VarChar(200)
+  Genre        Genre[]
+  TypeStream   TypeStream[]
+}
+
+model Serie {
+  id           Int      @id
+  name         String   @db.VarChar(1000)
+  firstAirDate String   @db.VarChar(20)
+  pegi         String   @db.VarChar(20)
+  overview     String   @db.VarChar(2500)
+  tagline      String   @db.VarChar(1000)
+  posterPath   String   @db.VarChar(200)
+  backdropPath String   @db.VarChar(200)
+  Genre        Genre[]
+  Season       Season[]
+}
+
+model Season {
+  id           Int       @id
+  seasonNumber Int
+  Episode      Episode[]
+  Serie        Serie     @relation(fields: [serieId], references: [id])
+  serieId      Int
+
+  @@unique([seasonNumber, serieId])
+}
+
+model Episode {
+  id            Int          @id
+  episodeNumber Int
+  TypeStream    TypeStream[]
+  Season        Season       @relation(fields: [seasonId], references: [id])
+  seasonId      Int
+
+  @@unique([episodeNumber, seasonId])
+}
+
+model Genre {
+  id    Int     @id
+  name  String  @db.VarChar(200)
+  Movie Movie[]
+  Serie Serie[]
+}
+
+model TypeStream {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique @db.VarChar(20)
+  Movie   Movie[]
+  Episode Episode[]
+}
