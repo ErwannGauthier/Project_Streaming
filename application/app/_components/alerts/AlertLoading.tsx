@@ -5,9 +5,10 @@ interface AlertLoadingProps {
     text: string;
 }
 
-export default function AlertLoading({ text }: AlertLoadingProps) {
+export default function AlertLoading({text}: AlertLoadingProps) {
     const mySVG = SvgLoading();
     return (
-        <Alert backgroundColor="bg-slate-300" borderColor="border-slate-500" svgProps={mySVG} textColor="text-black" text={text} />
+        <Alert backgroundColor="bg-slate-300" borderColor="border-slate-500" svgProps={mySVG} textColor="text-black"
+               text={text}/>
     )
 }

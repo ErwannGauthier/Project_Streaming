@@ -32,8 +32,8 @@
 }
 
 .calcPosterWidth50vh {
-    min-width: calc((300 * 50vh)/450);
-    width: calc((300 * 50vh)/450);
+    min-width: calc((300 * 50vh) / 450);
+    width: calc((300 * 50vh) / 450);
 }
 
 .PlayerVideo75vw {

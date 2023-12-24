@@ -1,10 +1,10 @@
 "use client"
 
-import {SeasonEpisodeAPIDB} from "@/app/api/TMDB/_types/SeasonEpisodeAPIDB";
 import ButtonsGroup from "./ButtonsGroup";
-import VideoPlayerEpisode from "@/app/_components/players/VideoPlayerEpisode";
 
 import {useState} from "react";
+import {SeasonEpisodeAPIDB} from "@/app/_types/SeasonEpisodeAPIDB";
+import HlsPlayerEpisode from "@/app/_components/players/HlsPlayerEpisode";
 
 interface PlayerProps {
     serieId: number,
@@ -13,10 +13,10 @@ interface PlayerProps {
 }
 
 
-export default function Player({ serieId, seasonNumber, episodesStreaming }: PlayerProps) {
-    const [currentEp, setCurrentEp] = useState(1);
+export default function Player({serieId, seasonNumber, episodesStreaming}: PlayerProps) {
+    const [currentEp, setCurrentEp] = useState<number>(1);
     const changeCurrentEp = (newEpIndex: number) => {
-        setCurrentEp(episodesStreaming[newEpIndex]["episode_number"]);
+        setCurrentEp(episodesStreaming[newEpIndex].episodeNumber);
     }
 
     return (
@@ -25,7 +25,7 @@ export default function Player({ serieId, seasonNumber, episodesStreaming }: Pla
                 <div className="PlayerVideo75vw pb-4">
                     <ButtonsGroup episodesStreaming={episodesStreaming} changeCurrentEpNumber={changeCurrentEp}/>
                 </div>
-                <VideoPlayerEpisode serieId={serieId} seasonNumber={seasonNumber} episodeNumber={currentEp} />
+                <HlsPlayerEpisode serieId={serieId} seasonNumber={seasonNumber} episodeNumber={currentEp}/>
             </div>
         </>
     );

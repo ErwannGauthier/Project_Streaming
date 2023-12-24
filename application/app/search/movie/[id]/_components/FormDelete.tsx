@@ -1,49 +1,39 @@
-import {useRouter} from "next/navigation";
-import {sleep} from "@/app/_utils/sleep";
+import {Movie, TypeStream} from "@prisma/client";
+import {PrismaUtils} from "@/app/_types/PrismaUtils";
+import {useState} from "react";
+import {bodyDeleteMovie} from "@/app/api/movie/[id]/route";
+import {fetchDeleteIdMovie} from "@/app/api/_fetchFunctions/movie/id/fetchDeleteIdMovie";
 
 interface FormDeleteProps {
-    id: number;
-    isStreaming: boolean,
-    title: string,
+    movieDB: Movie & { TypeStream: Array<TypeStream> };
     createAlert: (type: string, message?: string) => void;
+    callFetching: () => void,
     hideModal: () => void;
 }
 
-async function callDeleteMovie(id: number, isStreaming: boolean, title: string) {
-    const response = await fetch("/api/DATABASE/deleteMovie/",
-        {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id: id, isStreaming: isStreaming, title: title })
-        });
+export default function FormDelete({movieDB, createAlert, callFetching, hideModal}: FormDeleteProps) {
+    const [formData, setFormData] = useState<bodyDeleteMovie>({
+        id: movieDB.id,
+        isStreaming: PrismaUtils.hasStreaming(movieDB.TypeStream),
+        title: movieDB.title
+    });
 
-    const data = await response.json();
-    const result = {
-        message: data?.message,
-        isOk: response.ok,
-    };
-
-    return result;
-}
-
-export default function FormDelete({ id, isStreaming, title, createAlert, hideModal }: FormDeleteProps) {
-    const router = useRouter();
-
-    async function handleSubmit(event: React.FormEvent) {
-        event.preventDefault();        
+    const handleSubmit = async (event: React.FormEvent): Promise<void> => {
+        event.preventDefault();
+        createAlert("reset");
         createAlert("loading");
-        const result = await callDeleteMovie(id, isStreaming, title);
-        if (!result["isOk"]) {
-            createAlert("error", result["message"]);
+
+        const isOk: boolean = await fetchDeleteIdMovie(formData);
+
+        createAlert("reset");
+        if (!isOk) {
+            createAlert("error", "Une erreur s'est produite lors de la suppression du film de la base de données.");
             return;
         }
 
-        createAlert("validate", result["message"] + "  Vous allez être redirigé...");
-        await sleep(2000);
+        createAlert("validate", "Le film a été supprimé de la base de données.");
+        callFetching();
         hideModal();
-        router.push("/");
     }
 
     return (

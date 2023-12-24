@@ -1,47 +1,60 @@
 "use client";
 
-import { useEffect } from 'react';
-import useSWR from 'swr';
+import {useEffect, useState} from 'react';
 import Header from './_components/Header';
 import Episodes from './_components/Episodes';
-import LoadingScreen from '@/app/_components/LoadingScreen';
-import { SeasonAPIDB } from '@/app/api/TMDB/_types/SeasonAPIDB';
-import { getEpisodesStreaming } from '@/app/_utils/getEpisodeStreaming';
+import LoadingScreen from '@/app/_components/screens/LoadingScreen';
 import Player from './_components/Player';
+import {SeasonAPIDB} from "@/app/_types/SeasonAPIDB";
+import {SeasonEpisodeAPIDB} from "@/app/_types/SeasonEpisodeAPIDB";
+import {SeasonDb} from "@/app/_types/PrismaTypes";
+import {SeasonAPI} from "@/app/_types/SeasonAPI";
+import InternalErrorScreen from "@/app/_components/screens/InternalErrorScreen";
+import {fetchGetTmdbSeason} from "@/app/api/_fetchFunctions/season/tmdb/fetchGetTmdbSeason";
+import {fetchGetIdSeason} from "@/app/api/_fetchFunctions/season/id/fetchGetIdSeason";
 
-async function fetchData(url: string) {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error('Failed to fecth data');
-    }
-
-    return response.json();
-}
-
-export default function Season({ params }: { params: { seasonNumber: number, id: number } }) {
-    const serieID = params.id;
-    const seasonNumber = params.seasonNumber;
+export default function Season({params}: { params: { seasonNumber: number, id: number } }) {
+    const serieId: number = params.id;
+    const seasonNumber: number = params.seasonNumber;
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
+    const [seasonApi, setSeasonApi] = useState<SeasonAPI | undefined>();
+    const [seasonDb, setSeasonDb] = useState<SeasonDb | undefined>();
 
     useEffect(() => {
-        document.title = `GtrTV - Regarder - Série n°${serieID} - Saison ${seasonNumber}`;
-    }, [serieID, seasonNumber]);
+        document.title = `GtrTV - Regarder - Série n°${serieId} - Saison ${seasonNumber}`;
+        setError(false);
+        fetchGetTmdbSeason(serieId, seasonNumber, setSeasonApi, setLoading, setError);
+        setLoading(false);
+    }, [serieId, seasonNumber]);
 
-    const { data, isLoading } = useSWR(`/api/TMDB/getSeasonAndDB?id=${serieID}&seasonNumber=${seasonNumber}`, fetchData);
-    if (isLoading) {
+    useEffect(() => {
+        setError(false);
+        seasonApi && fetchGetIdSeason(seasonApi.id_, setSeasonDb, setLoading, setError);
+        setLoading(false);
+    }, [seasonApi]);
+
+    if (loading || ((!seasonApi || !seasonDb) && !error)) {
         return (
-            <LoadingScreen />
+            <LoadingScreen/>
         )
     }
 
-    const result: SeasonAPIDB = data?.result;
-    const episodesStreaming = getEpisodesStreaming(result["episodes"]);
+    if (error || !seasonApi) {
+        return (
+            <InternalErrorScreen/>
+        );
+    }
+
+    const seasonAPIDB: SeasonAPIDB = SeasonAPIDB.getInstanceFromSeasons(seasonApi, seasonDb!);
+    const episodesStreaming: SeasonEpisodeAPIDB[] = seasonAPIDB.getEpisodesStreaming();
 
     return (
         <>
-            <Header air_date={result["air_date"]} episodes_length={result["episodes"].length} name={result["name"]} overview={result["overview"]} poster_path={result["poster_path"]} />
-            <Episodes episodes={result["episodes"]} />
-            {episodesStreaming.length > 0 && <Player serieId={serieID} seasonNumber={seasonNumber} episodesStreaming={episodesStreaming} />}
+            <Header season={seasonAPIDB}/>
+            <Episodes episodes={seasonAPIDB.episodes}/>
+            {episodesStreaming.length > 0 &&
+                <Player serieId={serieId} seasonNumber={seasonNumber} episodesStreaming={episodesStreaming}/>}
         </>
     );
 }

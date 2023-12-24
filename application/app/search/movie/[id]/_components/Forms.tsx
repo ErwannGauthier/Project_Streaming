@@ -1,5 +1,3 @@
-import {MovieAPI} from "@/app/api/TMDB/_types/MovieAPI";
-import {Movie, TypeStream} from "@prisma/client";
 import AlertError from "@/app/_components/alerts/AlertError";
 import AlertLoading from "@/app/_components/alerts/AlertLoading";
 import AlertValidate from "@/app/_components/alerts/AlertValidate";
@@ -9,19 +7,21 @@ import {useState} from 'react';
 import FormUpdate from "./FormUpdate";
 import FormDelete from "./FormDelete";
 import FormAdd from "./FormAdd";
-import getPegiMovie from "@/app/_utils/getPegiMovie";
+import {MovieAPI} from "@/app/_types/MovieAPI";
+import {MovieDb} from "@/app/_types/PrismaTypes";
 
 interface FormsProps {
-    movieAPI: MovieAPI;
-    movieDB: Movie & { TypeStream: Array<TypeStream> } | null;
+    movieApi: MovieAPI;
+    movieDb: MovieDb | undefined;
+    callFetching: () => void,
     hideModal: () => void;
 }
 
-export default function Forms({ movieAPI, movieDB, hideModal }: FormsProps) {
-    const [showLoading, setShowLoading] = useState(false);
-    const [errorText, setErrorText] = useState("");
-    const [validateText, setValidateText] = useState("");
-    const [warningText, setWarningText] = useState("");
+export default function Forms({movieApi, movieDb, callFetching, hideModal}: FormsProps) {
+    const [showLoading, setShowLoading] = useState<boolean>(false);
+    const [errorText, setErrorText] = useState<string>("");
+    const [validateText, setValidateText] = useState<string>("");
+    const [warningText, setWarningText] = useState<string>("");
 
     const resetAlerts = () => {
         setShowLoading(false);
@@ -72,29 +72,23 @@ export default function Forms({ movieAPI, movieDB, hideModal }: FormsProps) {
         }
     }
 
-    const pegi = getPegiMovie(movieAPI["release_dates"]);
-    const isInDb = movieDB !== null;
-    let types: Array<number> = [];
-    if (isInDb) {
-        movieDB["TypeStream"].map((value: { id: number, name: string }) => {
-            types.push(value.id)
-        });
-    }
-
-    const showDiv = (showLoading || errorText || validateText || warningText);
+    const showDiv: boolean = (showLoading || errorText !== "" || validateText !== "" || warningText !== "");
     return (
         <>
             {showDiv &&
                 <div>
-                    {showLoading && <AlertLoading text="Chargement..." />}
-                    {errorText && <AlertError text={errorText} />}
-                    {validateText && <AlertValidate text={validateText} />}
-                    {warningText && <AlertWarning text={warningText} />}
+                    {showLoading && <AlertLoading text="Chargement..."/>}
+                    {errorText && <AlertError text={errorText}/>}
+                    {validateText && <AlertValidate text={validateText}/>}
+                    {warningText && <AlertWarning text={warningText}/>}
                 </div>
             }
-            {!isInDb && <FormAdd id={movieAPI["id"]} title={movieAPI["title"]} overview={movieAPI["overview"]} releaseDate={movieAPI["release_date"]} pegi={pegi} runtime={movieAPI["runtime"]} tagline={movieAPI["tagline"]} posterPath={movieAPI["poster_path"]} backdropPath={movieAPI["backdrop_path"]} genres={movieAPI["genres"]} createAlert={createAlert} hideModal={hideModal} />}
-            {isInDb && <FormUpdate id={movieDB["id"]} title={movieDB["title"]} overview={movieDB["overview"]} typesStream={types} createAlert={createAlert} hideModal={hideModal} />}
-            {isInDb && <FormDelete id={movieDB["id"]} isStreaming={types.includes(4)} title={movieDB["title"]} createAlert={createAlert} hideModal={hideModal} />}
+            {!movieDb && <FormAdd movieApi={movieApi} createAlert={createAlert} callFetching={callFetching}
+                                  hideModal={hideModal}/>}
+            {movieDb && <FormUpdate movieDB={movieDb} createAlert={createAlert} callFetching={callFetching}
+                                    hideModal={hideModal}/>}
+            {movieDb && <FormDelete movieDB={movieDb} createAlert={createAlert} callFetching={callFetching}
+                                    hideModal={hideModal}/>}
         </>
     )
 }

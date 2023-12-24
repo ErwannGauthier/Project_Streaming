@@ -5,9 +5,10 @@ interface AlertValidateProps {
     text: string;
 }
 
-export default function AlertValidate({ text }: AlertValidateProps) {
+export default function AlertValidate({text}: AlertValidateProps) {
     const mySVG = SvgValidate();
     return (
-        <Alert backgroundColor="bg-emerald-300" borderColor="border-emerald-500" svgProps={mySVG} textColor="text-black" text={text} />
+        <Alert backgroundColor="bg-emerald-300" borderColor="border-emerald-500" svgProps={mySVG} textColor="text-black"
+               text={text}/>
     )
 }
